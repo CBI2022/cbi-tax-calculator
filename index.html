@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CBI Tax Calculator — Costa Blanca Investments</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Maharlika&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#000; --gold:#C9A84C; --gold-soft:rgba(201,168,76,0.12);
+    --gold-line:rgba(201,168,76,0.35); --white:#fff; --grey:#8a8a8a;
+    --panel:#0d0d0d; --panel2:#151515; --line:#242424;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{-webkit-text-size-adjust:100%;}
+  body{background:var(--black);color:var(--white);font-family:'Inter',-apple-system,sans-serif;line-height:1.5;padding-bottom:60px;}
+  h1,h2,h3,.brandfont{font-family:'Maharlika','Inter',serif;}
+
+  header{text-align:center;padding:30px 20px 22px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#000,#0a0a0a);}
+  .logo{font-family:'Maharlika',serif;font-size:26px;letter-spacing:3px;text-transform:uppercase;}
+  .logo b{color:var(--gold);font-weight:normal;}
+  .tagline{color:var(--grey);font-size:10px;letter-spacing:4px;text-transform:uppercase;margin-top:8px;}
+  .apptitle{color:var(--gold);font-size:13px;letter-spacing:2px;margin-top:14px;text-transform:uppercase;}
+
+  .wrap{max-width:640px;margin:0 auto;padding:0 16px;}
+
+  /* ---------- STEP 1: ROLE PICKER ---------- */
+  .screen{display:none;}
+  .screen.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  .pick-intro{text-align:center;color:var(--grey);font-size:14px;margin:34px 0 22px;}
+  .pick{display:grid;gap:16px;}
+  .pick-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px 24px;
+    text-align:center;cursor:pointer;transition:all .18s;
+  }
+  .pick-card:hover{border-color:var(--gold);background:var(--panel2);transform:translateY(-2px);}
+  .pick-card .ic{font-size:38px;}
+  .pick-card .t{font-family:'Maharlika',serif;font-size:24px;letter-spacing:1px;color:var(--white);margin-top:10px;}
+  .pick-card .t b{color:var(--gold);font-weight:normal;}
+  .pick-card .d{color:var(--grey);font-size:13px;margin-top:6px;}
+  .pick-both{text-align:center;margin-top:18px;}
+  .pick-both button{background:none;border:none;color:var(--gold);font-size:13px;letter-spacing:1px;text-decoration:underline;cursor:pointer;text-transform:uppercase;font-family:inherit;}
+
+  /* ---------- FORM ---------- */
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin:22px 0 4px;}
+  .back{background:none;border:1px solid var(--line);color:var(--grey);border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit;letter-spacing:.5px;}
+  .back:hover{border-color:var(--gold);color:var(--gold);}
+  .role-chip{font-family:'Maharlika',serif;font-size:20px;letter-spacing:1px;color:var(--gold);}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-top:16px;}
+  label{display:block;font-size:12px;color:var(--grey);margin-bottom:7px;letter-spacing:.3px;}
+  .field{margin-bottom:16px;}
+  .field:last-child{margin-bottom:0;}
+  input[type=number],input[type=text]{
+    width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    color:var(--white);padding:13px 13px;font-size:16px;font-family:inherit;transition:border .15s;-webkit-appearance:none;
+  }
+  input:focus{outline:none;border-color:var(--gold);}
+  input::placeholder{color:#4a4a4a;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:440px){.row2{grid-template-columns:1fr;}}
+
+  .segmented{display:flex;gap:6px;flex-wrap:wrap;}
+  .segmented button{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--line);color:var(--grey);padding:11px 6px;border-radius:10px;font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit;}
+  .segmented button.active{background:var(--gold-soft);border-color:var(--gold);color:var(--gold);font-weight:600;}
+
+  .check{display:flex;align-items:center;gap:10px;margin-top:14px;cursor:pointer;}
+  .check input{width:18px;height:18px;accent-color:var(--gold);flex-shrink:0;}
+  .check span{font-size:13px;color:#cfcfcf;}
+  .hint{font-size:11.5px;color:#5f5f5f;margin-top:8px;}
+
+  .more{width:100%;background:transparent;border:1px dashed var(--gold-line);color:var(--gold);padding:12px;border-radius:10px;cursor:pointer;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-top:16px;font-family:inherit;}
+  .more-body{display:none;margin-top:16px;}
+  .more-body.open{display:block;}
+
+  /* ---------- RESULT ---------- */
+  .result-head{text-align:center;padding:18px;border-radius:14px 14px 0 0;background:linear-gradient(180deg,#141414,#0b0b0b);border:1px solid var(--line);border-bottom:none;margin-top:20px;}
+  .result-head .plabel{font-size:10px;letter-spacing:3px;color:var(--grey);text-transform:uppercase;}
+  .result-head .price{font-family:'Maharlika',serif;font-size:32px;color:var(--gold);}
+  .rescard{background:var(--panel);border:1px solid var(--line);padding:22px;border-radius:0 0 14px 14px;}
+  .rescard h3{font-size:14px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:14px;text-align:center;}
+  .line{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid #1a1a1a;font-size:15px;}
+  .line .lbl{color:#dcdcdc;}
+  .line .lbl small{display:block;color:#5f5f5f;font-size:10.5px;letter-spacing:.3px;}
+  .line .val{color:var(--white);font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:12px;}
+  .line.muted .val{color:#6f6f6f;}
+  .line.zero{display:none;}
+  .total{display:flex;justify-content:space-between;align-items:baseline;margin-top:16px;padding:15px 16px;background:var(--gold-soft);border:1px solid var(--gold-line);border-radius:11px;}
+  .total .lbl{color:var(--gold);font-size:13px;letter-spacing:1px;text-transform:uppercase;}
+  .total .val{font-family:'Maharlika',serif;font-size:23px;color:var(--gold);font-variant-numeric:tabular-nums;}
+  .pct{text-align:right;font-size:11px;color:var(--grey);margin-top:7px;}
+
+  .net{margin-top:16px;text-align:center;padding:24px;background:linear-gradient(180deg,#12130e,#0b0b0b);border:1px solid var(--gold);border-radius:14px;}
+  .net .lbl{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--grey);}
+  .net .val{font-family:'Maharlika',serif;font-size:38px;color:var(--gold);margin-top:6px;font-variant-numeric:tabular-nums;}
+  .net small{display:block;color:#6f6f6f;font-size:11px;margin-top:6px;}
+
+  .flag{display:flex;gap:10px;align-items:flex-start;background:rgba(224,104,95,0.08);border:1px solid rgba(224,104,95,0.3);border-radius:9px;padding:11px 13px;margin-top:12px;font-size:12.5px;color:#e9a7a2;}
+  .flag.info{background:var(--gold-soft);border-color:var(--gold-line);color:#d9c692;}
+  .flag .i{font-size:15px;line-height:1;}
+
+  .actions{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap;}
+  .btn{background:var(--gold);color:#000;border:none;padding:13px 26px;border-radius:10px;font-size:12px;letter-spacing:1px;text-transform:uppercase;font-weight:600;cursor:pointer;font-family:inherit;}
+  .btn.ghost{background:transparent;color:var(--gold);border:1px solid var(--gold);}
+
+  .disclaimer{margin:22px auto 0;text-align:center;font-size:11.5px;color:#5f5f5f;border-top:1px solid var(--line);padding-top:18px;line-height:1.7;}
+  footer{text-align:center;color:#4a4a4a;font-size:11px;margin-top:34px;letter-spacing:1px;}
+  footer a{color:var(--gold);text-decoration:none;}
+
+  @media print{
+    body{background:#fff;color:#000;}
+    .topbar,.card,.more,.actions,.pick-both,.hint{display:none!important;}
+    .more-body{display:block!important;}
+    .result-head,.rescard,.net{background:#fff!important;border-color:#ccc!important;}
+    .result-head .price,.total .val,.net .val,.rescard h3,.total .lbl{color:#8a6d1f!important;}
+    .line .lbl,.line .val{color:#000!important;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">COSTA BLANCA <b>INVESTMENTS</b></div>
+  <div class="tagline">Altea · Costa Blanca North</div>
+  <div class="apptitle">Property Tax &amp; Cost Calculator</div>
+</header>
+
+<div class="wrap">
+
+  <!-- ============ SCREEN 0: PICK ROLE ============ -->
+  <div class="screen active" id="screenPick">
+    <div class="pick-intro">Who are you calculating for?</div>
+    <div class="pick">
+      <div class="pick-card" onclick="go('buyer')">
+        <div class="ic">🔑</div>
+        <div class="t">I'm the <b>Buyer</b></div>
+        <div class="d">Taxes &amp; costs to purchase a property</div>
+      </div>
+      <div class="pick-card" onclick="go('seller')">
+        <div class="ic">🏷️</div>
+        <div class="t">I'm the <b>Seller</b></div>
+        <div class="d">Taxes, costs &amp; net proceeds from a sale</div>
+      </div>
+    </div>
+    <div class="pick-both"><button onclick="go('both')">Show both at once</button></div>
+  </div>
+
+  <!-- ============ SCREEN 1: FORM ============ -->
+  <div class="screen" id="screenForm">
+    <div class="topbar">
+      <button class="back" onclick="go('pick')">← Change</button>
+      <div class="role-chip" id="roleChip"></div>
+    </div>
+
+    <!-- shared: price + property -->
+    <div class="card">
+      <div class="field">
+        <label>Sale price (€)</label>
+        <input type="number" id="salePrice" placeholder="600000" value="600000">
+      </div>
+      <div class="field" id="fldAddress">
+        <label>Property reference (optional)</label>
+        <input type="text" id="address" placeholder="e.g. Villa Mascarat, Altea">
+      </div>
+    </div>
+
+    <!-- ===== BUYER CARD ===== -->
+    <div class="card buyerOnly">
+      <div class="field">
+        <label>Property type</label>
+        <div class="segmented" id="propType">
+          <button data-v="resale" class="active">Resale</button>
+          <button data-v="newbuild">New build</button>
+        </div>
+      </div>
+      <div class="field" id="itpRow">
+        <div class="hint">Comunidad Valenciana ITP (resale): 9% up to 1.000.000 €, 11% above.</div>
+      </div>
+      <div class="field newbuildNote" style="display:none;">
+        <div class="flag info"><span class="i">ℹ️</span><span>New build: <b>10% IVA + 1.5% AJD = 11.5%</b> applies instead of ITP.</span></div>
+      </div>
+      <label class="check"><input type="checkbox" id="buyerNonRes"><span>Buyer is a non-resident</span></label>
+
+      <button class="more" onclick="toggleMore('moreBuyer',this)">▾ More options</button>
+      <div class="more-body" id="moreBuyer">
+        <label class="check"><input type="checkbox" id="hasMortgageBuy"><span>Buyer is taking a new mortgage</span></label>
+        <div class="field" style="margin-top:12px;">
+          <label>Gestoría fee (€)</label>
+          <input type="number" id="gestoria" value="400">
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SELLER CARD ===== -->
+    <div class="card sellerOnly">
+      <div class="field">
+        <label>Seller residency</label>
+        <div class="segmented" id="sellerRes">
+          <button data-v="resident" class="active">Resident</button>
+          <button data-v="eu">Non-res EU</button>
+          <button data-v="noneu">Non-res non-EU</button>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Original purchase price (€)</label>
+          <input type="number" id="purchasePrice" placeholder="450000">
+        </div>
+        <div class="field">
+          <label>Year bought</label>
+          <input type="number" id="purchaseYear" placeholder="2015">
+        </div>
+      </div>
+      <div class="field">
+        <label>Agent commission (%)</label>
+        <input type="number" id="commissionPct" value="5" step="0.5">
+        <div class="hint">21% IVA is added automatically.</div>
+      </div>
+      <label class="check"><input type="checkbox" id="over65"><span>Seller is 65+ selling their main home (gains exempt)</span></label>
+
+      <button class="more" onclick="toggleMore('moreSeller',this)">▾ More options (plusvalía, mortgage, extras)</button>
+      <div class="more-body" id="moreSeller">
+        <div class="row2">
+          <div class="field">
+            <label>Purchase costs paid then (€)</label>
+            <input type="number" id="purchaseCosts" placeholder="45000">
+          </div>
+          <div class="field">
+            <label>Improvements (€)</label>
+            <input type="number" id="improvements" placeholder="0">
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>Catastral LAND value (€)</label>
+            <input type="number" id="landValue" placeholder="80000">
+          </div>
+          <div class="field">
+            <label>Plusvalía rate (%)</label>
+            <input type="number" id="plusvaliaRate" value="30" step="0.5">
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="soldAtLoss"><span>Sold at a loss (plusvalía exempt)</span></label>
+        <label class="check"><input type="checkbox" id="hasMortgageSell"><span>Seller has a mortgage to cancel</span></label>
+        <div id="mortgageSellBox" style="display:none;margin-top:12px;">
+          <div class="row2">
+            <div class="field">
+              <label>Outstanding balance (€)</label>
+              <input type="number" id="outstanding" placeholder="150000">
+            </div>
+            <div class="field">
+              <label>Cancellation fee (%)</label>
+              <input type="number" id="cancelFeePct" value="0.5" step="0.25">
+            </div>
+          </div>
+          <label class="check"><input type="checkbox" id="deductMortgage" checked><span>Deduct balance from net proceeds</span></label>
+        </div>
+        <div class="row2" style="margin-top:12px;">
+          <div class="field">
+            <label>Energy certificate (€)</label>
+            <input type="number" id="energyCert" value="150">
+          </div>
+          <div class="field">
+            <label>Community certificate (€)</label>
+            <input type="number" id="communityCert" value="75">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== RESULTS ===== -->
+    <div class="result-head">
+      <div class="plabel">Sale price</div>
+      <div class="price" id="rPrice">600.000 €</div>
+    </div>
+
+    <div class="rescard buyerOnly" style="margin-top:0;">
+      <h3>🔑 Buyer Costs</h3>
+      <div id="buyerLines"></div>
+      <div class="total"><span class="lbl">Total for buyer</span><span class="val" id="buyerTotal">—</span></div>
+      <div class="pct" id="buyerPct"></div>
+      <div id="buyerFlags"></div>
+    </div>
+
+    <div class="rescard sellerOnly" style="margin-top:0;">
+      <h3>🏷️ Seller Costs</h3>
+      <div id="sellerLines"></div>
+      <div class="total"><span class="lbl">Total for seller</span><span class="val" id="sellerTotal">—</span></div>
+      <div class="pct" id="sellerPct"></div>
+      <div id="sellerFlags"></div>
+    </div>
+
+    <div class="net sellerOnly">
+      <div class="lbl">Net proceeds to seller</div>
+      <div class="val" id="netProceeds">—</div>
+      <small id="netNote">Sale price minus all seller costs</small>
+    </div>
+
+    <div class="actions">
+      <button class="btn" onclick="window.print()">Print / Save PDF</button>
+      <button class="btn ghost" onclick="go('pick')">New calculation</button>
+    </div>
+
+    <div class="disclaimer">
+      <b>⚠️ Estimates only.</b> Indicative figures based on Comunidad Valenciana rules. Rates change — always confirm final numbers with a qualified <i>gestor / asesor fiscal</i>.
+    </div>
+  </div>
+
+  <footer>
+    Costa Blanca Investments · Altea · <a href="https://www.costablancainvestments.com">costablancainvestments.com</a>
+  </footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const num = id => { const v=parseFloat($(id).value); return isNaN(v)?0:v; };
+const euro = n => Math.round(n).toLocaleString('de-DE')+' €';
+const pctOf = (p,w)=> w>0 ? (p/w*100).toFixed(1)+'%' : '0%';
+
+let role='buyer';
+const state={propType:'resale', sellerRes:'resident'};
+
+/* screen navigation */
+function go(r){
+  if(r==='pick'){ $('screenPick').classList.add('active'); $('screenForm').classList.remove('active'); window.scrollTo(0,0); return; }
+  role=r;
+  $('screenPick').classList.remove('active');
+  $('screenForm').classList.add('active');
+  const showBuyer = (r==='buyer'||r==='both');
+  const showSeller = (r==='seller'||r==='both');
+  document.querySelectorAll('.buyerOnly').forEach(e=>e.style.display=showBuyer?'':'none');
+  document.querySelectorAll('.sellerOnly').forEach(e=>e.style.display=showSeller?'':'none');
+  $('roleChip').textContent = r==='buyer'?'Buyer':r==='seller'?'Seller':'Buyer + Seller';
+  window.scrollTo(0,0);
+  calc();
+}
+function toggleMore(id,btn){
+  const b=$(id); b.classList.toggle('open');
+  btn.textContent = b.classList.contains('open') ? btn.textContent.replace('▾','▴') : btn.textContent.replace('▴','▾');
+}
+
+/* segmented */
+document.querySelectorAll('.segmented').forEach(seg=>{
+  seg.addEventListener('click',e=>{
+    const btn=e.target.closest('button'); if(!btn)return;
+    seg.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); state[seg.id]=btn.dataset.v;
+    if(seg.id==='propType'){
+      const nb = state.propType==='newbuild';
+      $('itpRow').style.display = nb?'none':'';
+      document.querySelector('.newbuildNote').style.display = nb?'':'none';
+    }
+    calc();
+  });
+});
+$('hasMortgageSell').addEventListener('change',e=>{ $('mortgageSellBox').style.display=e.target.checked?'block':'none'; calc(); });
+
+/* fee scales */
+function notaryFee(p){ let e=p*0.004; if(p>1000000)e=p*0.0025+500; return Math.max(600,Math.min(e,3200)); }
+function registryFee(p){ return Math.max(400,notaryFee(p)*0.6); }
+function residentCGT(g){ if(g<=0)return 0; const b=[[6000,0.19],[44000,0.21],[150000,0.23],[100000,0.27],[Infinity,0.28]]; let t=0,r=g; for(const[s,rt]of b){const x=Math.min(r,s);t+=x*rt;r-=x;if(r<=0)break;} return t; }
+function plusvaliaCoeff(y){ const m={0:0.15,1:0.15,2:0.14,3:0.15,4:0.17,5:0.17,6:0.16,7:0.12,8:0.10,9:0.09,10:0.08,11:0.08,12:0.08,13:0.08,14:0.10,15:0.12,16:0.16,17:0.20,18:0.26,19:0.36,20:0.45}; if(y>=20)return 0.45; if(y<0)y=0; return m[y]!==undefined?m[y]:0.45; }
+
+function calc(){
+  const price=num('salePrice');
+  $('rPrice').textContent=euro(price);
+
+  /* ---- BUYER ---- */
+  const buyer=[]; let buyerTotal=0; const bFlags=[];
+  if(role!=='seller'){
+    if(state.propType==='newbuild'){
+      buyer.push(['IVA (10%)','New build',price*0.10]);
+      buyer.push(['AJD (1.5%)','Stamp duty',price*0.015]);
+      buyerTotal+=price*0.115;
+    } else {
+      const rate = price>1000000 ? 0.11 : 0.09;
+      const rl = price>1000000?'Resale · value >1.000.000 €':'Resale';
+      buyer.push([`ITP (${(rate*100).toFixed(0)}%)`,rl,price*rate]);
+      buyerTotal+=price*rate;
+    }
+    const nf=notaryFee(price),rf=registryFee(price),g=num('gestoria');
+    buyer.push(['Notary fees','Estimate',nf]);
+    buyer.push(['Land registry','Estimate',rf]);
+    buyer.push(['Gestoría','Admin',g]);
+    buyerTotal+=nf+rf+g;
+    if($('hasMortgageBuy').checked){
+      buyer.push(['Valuation / tasación','New mortgage',400]);
+      buyerTotal+=400;
+      bFlags.push(['info','AJD on the mortgage deed (1.5%) is paid by the bank since 2019.']);
+    }
+    if($('buyerNonRes').checked) bFlags.push(['info','Non-resident buyer needs a NIE and may appoint a fiscal representative.']);
+  }
+
+  /* ---- SELLER ---- */
+  const seller=[]; let sellerTotal=0; const sFlags=[]; let outstanding=0;
+  if(role!=='buyer'){
+    const purchase=num('purchasePrice'),pCosts=num('purchaseCosts'),improv=num('improvements'),pYear=num('purchaseYear');
+    const hasBasis=purchase>0;
+    let gain = hasBasis ? price-(purchase+pCosts+improv) : 0;
+    if($('over65').checked){
+      seller.push(['Capital gains tax','Exempt — 65+ main home',0,'muted']);
+      sFlags.push(['info','CGT exemption applied (seller 65+, main residence).']);
+    } else if(state.sellerRes==='resident'){
+      let cgt = hasBasis ? residentCGT(gain) : 0;
+      seller.push(['Capital gains tax', hasBasis?(gain>0?`Resident · gain ${euro(gain)}`:'No taxable gain'):'Enter purchase price', Math.max(0,cgt), hasBasis?'':'muted']);
+      sellerTotal+=Math.max(0,cgt);
+    } else {
+      const flat=state.sellerRes==='eu'?0.19:0.24;
+      let cgt = (hasBasis&&gain>0)?gain*flat:0;
+      seller.push(['Capital gains tax',hasBasis?(gain>0?`Non-res ${(flat*100).toFixed(0)}% · gain ${euro(gain)}`:'No taxable gain'):`Non-res ${(flat*100).toFixed(0)}% — enter purchase`,cgt,(hasBasis&&gain>0)?'':'muted']);
+      sellerTotal+=cgt;
+      const ret=price*0.03;
+      seller.push(['3% retention','Withheld by buyer · Modelo 211',ret,'muted']);
+      sFlags.push(['warn',`Non-resident seller: buyer withholds 3% (${euro(ret)}) at notary, paid to Hacienda within 1 month. Reclaim excess via Modelo 210.`]);
+    }
+    // plusvalia
+    const land=num('landValue'),prate=num('plusvaliaRate')/100;
+    if($('soldAtLoss').checked){
+      seller.push(['Plusvalía municipal','Exempt — sold at loss',0,'muted']);
+    } else if(land>0&&pYear>0){
+      const years=Math.max(0,new Date().getFullYear()-pYear);
+      const objTax=land*plusvaliaCoeff(years)*prate;
+      let realTax=objTax;
+      if(hasBasis&&gain>0&&purchase>0){ realTax=gain*Math.min(1,land/purchase)*prate; }
+      const plus=Math.max(0,Math.min(objTax,realTax));
+      seller.push(['Plusvalía municipal',`Best method · ${years} yr held`,plus]);
+      sellerTotal+=plus;
+    } else {
+      seller.push(['Plusvalía municipal','Add land value + year in More options',0,'muted']);
+    }
+    // commission
+    const c=num('commissionPct')/100, commTot=price*c*1.21;
+    seller.push(['Agent commission',`${(c*100)}% + 21% IVA`,commTot]);
+    sellerTotal+=commTot;
+    // mortgage cancel
+    if($('hasMortgageSell').checked){
+      outstanding=num('outstanding');
+      const cc=outstanding*(num('cancelFeePct')/100)+900;
+      seller.push(['Mortgage cancellation','Fee + notary + registry + gestoría',cc]);
+      sellerTotal+=cc;
+    }
+    // certs
+    const ec=num('energyCert'),cmc=num('communityCert');
+    seller.push(['Energy certificate','Required',ec]);
+    seller.push(['Community certificate','Certificado de deuda',cmc]);
+    sellerTotal+=ec+cmc;
+    if(pYear>0&&(new Date().getFullYear()-pYear)<1) sFlags.push(['warn','Owned less than 1 year — short-term gain, higher tax exposure.']);
+    if(pYear>0&&pYear<=1994) sFlags.push(['info','Bought before 1995 — transitional reduction may lower CGT.']);
+  }
+
+  /* render */
+  const render=arr=>arr.map(([l,s,v,c])=>{
+    const zero=(v===0&&c!=='muted');
+    return `<div class="line ${c||''} ${zero?'zero':''}"><span class="lbl">${l}<small>${s}</small></span><span class="val">${euro(v)}</span></div>`;
+  }).join('');
+  const flagHTML=arr=>arr.map(([t,m])=>`<div class="flag ${t==='info'?'info':''}"><span class="i">${t==='info'?'ℹ️':'⚠️'}</span><span>${m}</span></div>`).join('');
+
+  if(role!=='seller'){
+    $('buyerLines').innerHTML=render(buyer);
+    $('buyerTotal').textContent=euro(buyerTotal);
+    $('buyerPct').textContent='≈ '+pctOf(buyerTotal,price)+' of sale price';
+    $('buyerFlags').innerHTML=flagHTML(bFlags);
+  }
+  if(role!=='buyer'){
+    $('sellerLines').innerHTML=render(seller);
+    $('sellerTotal').textContent=euro(sellerTotal);
+    $('sellerPct').textContent='≈ '+pctOf(sellerTotal,price)+' of sale price';
+    $('sellerFlags').innerHTML=flagHTML(sFlags);
+    let net=price-sellerTotal, note='Sale price minus all seller costs';
+    if($('hasMortgageSell').checked&&$('deductMortgage').checked&&outstanding>0){ net-=outstanding; note='After seller costs and outstanding mortgage ('+euro(outstanding)+')'; }
+    $('netProceeds').textContent=euro(net);
+    $('netNote').textContent=note;
+  }
+}
+
+document.querySelectorAll('input').forEach(el=>{ el.addEventListener('input',calc); el.addEventListener('change',calc); });
+calc();
+</script>
+</body>
+</html>
