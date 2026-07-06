@@ -111,13 +111,37 @@
   footer{text-align:center;color:#4a4a4a;font-size:11px;margin-top:34px;letter-spacing:1px;}
   footer a{color:var(--gold);text-decoration:none;}
 
+  /* print-only elements hidden on screen */
+  .print-only{display:none;}
+
   @media print{
-    body{background:#fff;color:#000;}
-    .topbar,.card,.more,.actions,.pick-both,.hint{display:none!important;}
-    .more-body{display:block!important;}
-    .result-head,.rescard,.net{background:#fff!important;border-color:#ccc!important;}
-    .result-head .price,.total .val,.net .val,.rescard h3,.total .lbl{color:#8a6d1f!important;}
+    @page{margin:14mm;}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    html,body{background:#fff!important;color:#000!important;padding:0!important;}
+    header,.topbar,.card,.more,.actions,.pick-both,.hint,footer,.more-body{display:none!important;}
+    #screenPick{display:none!important;}
+    .screen{display:block!important;}
+    .wrap{max-width:100%!important;padding:0!important;}
+    .print-only{display:block!important;}
+
+    .print-header{text-align:center;border-bottom:2px solid var(--gold);padding-bottom:12px;margin-bottom:20px;}
+    .print-header .ph-brand{font-family:'Maharlika',serif;font-size:23px;letter-spacing:2px;text-transform:uppercase;color:#000;}
+    .print-header .ph-brand b{color:#b5912f;font-weight:normal;}
+    .print-header .ph-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#666;margin-top:5px;}
+    .print-header .ph-meta{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:#444;margin-top:12px;}
+
+    .result-head,.rescard,.net{background:#fff!important;border-color:#c9c9c9!important;break-inside:avoid;}
+    .result-head{border-bottom:none!important;}
+    .result-head .plabel,.net small,.pct,.line .lbl small{color:#666!important;}
+    .result-head .price,.total .val,.net .val,.rescard h3,.total .lbl,.net .lbl{color:#b5912f!important;}
+    .line{border-bottom:1px solid #e2e2e2!important;}
     .line .lbl,.line .val{color:#000!important;}
+    .line.muted .val{color:#888!important;}
+    .total{background:#faf6ea!important;border:1px solid var(--gold)!important;}
+    .net{border:1.5px solid var(--gold)!important;}
+    .flag{background:#fbfbfb!important;border-color:#ddd!important;color:#333!important;}
+    .flag.info{background:#faf6ea!important;border-color:#e2d3a0!important;color:#6b5a1f!important;}
+    .disclaimer{display:block!important;color:#666!important;border-top:1px solid #ccc!important;}
   }
 </style>
 </head>
@@ -154,6 +178,16 @@
     <div class="topbar">
       <button class="back" onclick="go('pick')">← Change</button>
       <div class="role-chip" id="roleChip"></div>
+    </div>
+
+    <!-- print-only branded header -->
+    <div class="print-only print-header" id="printHeader">
+      <div class="ph-brand">COSTA BLANCA <b>INVESTMENTS</b></div>
+      <div class="ph-sub">Property Tax &amp; Cost Estimate · Altea, Costa Blanca</div>
+      <div class="ph-meta">
+        <span id="phRef"></span>
+        <span id="phDate"></span>
+      </div>
     </div>
 
     <!-- shared: price + property -->
@@ -301,7 +335,7 @@
     </div>
 
     <div class="actions">
-      <button class="btn" onclick="window.print()">Print / Save PDF</button>
+      <button class="btn" onclick="window.print()">🖨 Download PDF</button>
       <button class="btn ghost" onclick="go('pick')">New calculation</button>
     </div>
 
@@ -478,6 +512,15 @@ function calc(){
 }
 
 document.querySelectorAll('input').forEach(el=>{ el.addEventListener('input',calc); el.addEventListener('change',calc); });
+
+/* populate branded print header before printing / saving PDF */
+window.addEventListener('beforeprint',()=>{
+  const ref=$('address').value.trim();
+  $('phRef').textContent = ref ? ('Property: '+ref) : 'Property estimate';
+  const roleTxt = role==='buyer'?'Buyer estimate':role==='seller'?'Seller estimate':'Buyer + Seller estimate';
+  $('phDate').textContent = roleTxt+' · '+new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+});
+
 calc();
 </script>
 </body>
