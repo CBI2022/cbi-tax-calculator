@@ -73,6 +73,15 @@
   .check span{font-size:13px;color:#cfcfcf;}
   .hint{font-size:11.5px;color:#5f5f5f;margin-top:8px;}
 
+  .infobtn{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1px solid var(--gold-line);color:var(--gold);font-size:10px;font-style:italic;font-family:Georgia,'Times New Roman',serif;font-weight:600;cursor:pointer;margin-left:6px;vertical-align:middle;line-height:1;user-select:none;flex-shrink:0;}
+  .infobtn:hover,.infobtn:active{background:var(--gold-soft);}
+  .tip{display:none;background:var(--gold-soft);border:1px solid var(--gold-line);border-radius:9px;padding:9px 12px;font-size:11.5px;color:#d9c692;line-height:1.55;margin:2px 0 12px;}
+  .tip.open{display:block;animation:fade .2s ease;}
+  .checkwrap{margin-top:14px;}
+  .checkwrap .check{margin-top:0;}
+  .checkwrap .tip{margin-top:8px;margin-bottom:0;}
+  .checkrow{display:flex;align-items:center;gap:2px;}
+
   .more{width:100%;background:transparent;border:1px dashed var(--gold-line);color:var(--gold);padding:12px;border-radius:10px;cursor:pointer;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-top:16px;font-family:inherit;}
   .more-body{display:none;margin-top:16px;}
   .more-body.open{display:block;}
@@ -142,6 +151,7 @@
     .flag{background:#fbfbfb!important;border-color:#ddd!important;color:#333!important;}
     .flag.info{background:#faf6ea!important;border-color:#e2d3a0!important;color:#6b5a1f!important;}
     .disclaimer{display:block!important;color:#666!important;border-top:1px solid #ccc!important;}
+    .infobtn,.tip{display:none!important;}
   }
 </style>
 </head>
@@ -193,11 +203,13 @@
     <!-- shared: price + property -->
     <div class="card">
       <div class="field">
-        <label>Sale price (€)</label>
+        <label>Sale price (€) <span class="infobtn" onclick="tip(this)">i</span></label>
+        <div class="tip">The agreed sale price of the property. All taxes and costs below are calculated from this figure.</div>
         <input type="number" id="salePrice" placeholder="600000" value="600000">
       </div>
       <div class="field" id="fldAddress">
-        <label>Property reference (optional)</label>
+        <label>Property reference (optional) <span class="infobtn" onclick="tip(this)">i</span></label>
+        <div class="tip">A name or address to identify the property. Only used as a label on the PDF — it does not affect any calculation.</div>
         <input type="text" id="address" placeholder="e.g. Villa Mascarat, Altea">
       </div>
     </div>
@@ -205,7 +217,8 @@
     <!-- ===== BUYER CARD ===== -->
     <div class="card buyerOnly">
       <div class="field">
-        <label>Property type</label>
+        <label>Property type <span class="infobtn" onclick="tip(this)">i</span></label>
+        <div class="tip"><b>Resale</b> (second-hand) pays ITP transfer tax: 9% up to 1.000.000 €, 11% above. <b>New build</b> (first sale from developer) pays 10% IVA + 1.5% AJD stamp duty instead. This choice changes which purchase tax applies.</div>
         <div class="segmented" id="propType">
           <button data-v="resale" class="active">Resale</button>
           <button data-v="newbuild">New build</button>
@@ -217,13 +230,20 @@
       <div class="field newbuildNote" style="display:none;">
         <div class="flag info"><span class="i">ℹ️</span><span>New build: <b>10% IVA + 1.5% AJD = 11.5%</b> applies instead of ITP.</span></div>
       </div>
-      <label class="check"><input type="checkbox" id="buyerNonRes"><span>Buyer is a non-resident</span></label>
+      <div class="checkwrap">
+        <div class="checkrow"><label class="check"><input type="checkbox" id="buyerNonRes"><span>Buyer is a non-resident</span></label><span class="infobtn" onclick="tip(this)">i</span></div>
+        <div class="tip">Tick if the buyer is not tax-resident in Spain. Non-residents need a NIE number and may need to appoint a fiscal representative. It does not change the purchase taxes, but adds a reminder note.</div>
+      </div>
 
       <button class="more" onclick="toggleMore('moreBuyer',this)">▾ More options</button>
       <div class="more-body" id="moreBuyer">
-        <label class="check"><input type="checkbox" id="hasMortgageBuy"><span>Buyer is taking a new mortgage</span></label>
+        <div class="checkwrap">
+          <div class="checkrow"><label class="check"><input type="checkbox" id="hasMortgageBuy"><span>Buyer is taking a new mortgage</span></label><span class="infobtn" onclick="tip(this)">i</span></div>
+          <div class="tip">Tick if the purchase is financed with a new mortgage. Adds an estimated valuation (tasación) fee of around 400 €. Since 2019 the bank pays the AJD stamp duty on the mortgage deed, not the buyer.</div>
+        </div>
         <div class="field" style="margin-top:12px;">
-          <label>Gestoría fee (€)</label>
+          <label>Gestoría fee (€) <span class="infobtn" onclick="tip(this)">i</span></label>
+          <div class="tip">Fee for the administrative agency (gestoría) that handles the paperwork, tax filing and registration after the notary. Typically 300–500 €.</div>
           <input type="number" id="gestoria" value="400">
         </div>
       </div>
@@ -232,75 +252,86 @@
     <!-- ===== SELLER CARD ===== -->
     <div class="card sellerOnly">
       <div class="field">
-        <label>Seller residency</label>
+        <label>Seller residency <span class="infobtn" onclick="tip(this)">i</span></label>
+        <div class="tip"><b>Fiscal resident in Spain</b>: capital gains taxed on a progressive scale (19%–28%). <b>Non fiscal resident</b>: gains taxed at a flat 24%, and the buyer withholds 3% of the sale price at the notary (Modelo 211) as an advance payment.</div>
         <div class="segmented" id="sellerRes">
-          <button data-v="resident" class="active">Resident</button>
-          <button data-v="eu">Non-res EU</button>
-          <button data-v="noneu">Non-res non-EU</button>
+          <button data-v="resident" class="active">Fiscal resident in Spain</button>
+          <button data-v="nonres">Non fiscal resident</button>
         </div>
       </div>
       <div class="row2">
         <div class="field">
-          <label>Original purchase price (€)</label>
+          <label>Original purchase price (€) <span class="infobtn" onclick="tip(this)">i</span></label>
+          <div class="tip">What the seller originally paid for the property. Used to work out the capital gain (sale price minus purchase price and costs).</div>
           <input type="number" id="purchasePrice" placeholder="450000">
         </div>
         <div class="field">
-          <label>Year bought</label>
+          <label>Year bought <span class="infobtn" onclick="tip(this)">i</span></label>
+          <div class="tip">The year the property was purchased. Used to calculate the plusvalía coefficient and to flag short-term (under 1 year) or pre-1995 ownership.</div>
           <input type="number" id="purchaseYear" placeholder="2015">
         </div>
       </div>
       <div class="field">
-        <label>Agent commission (%)</label>
+        <label>Agent commission (%) <span class="infobtn" onclick="tip(this)">i</span></label>
+        <div class="tip">The agency's fee as a percentage of the sale price. 21% IVA (VAT) is added on top automatically.</div>
         <input type="number" id="commissionPct" value="5" step="0.5">
         <div class="hint">21% IVA is added automatically.</div>
       </div>
-      <label class="check"><input type="checkbox" id="over65"><span>Seller is 65+ selling their main home (gains exempt)</span></label>
+      <div class="checkwrap">
+        <div class="checkrow"><label class="check"><input type="checkbox" id="over65"><span>Seller is 65+ selling their main home (gains exempt)</span></label><span class="infobtn" onclick="tip(this)">i</span></div>
+        <div class="tip">Sellers aged 65 or over are exempt from capital gains tax when selling their main residence (vivienda habitual). Tick this to remove CGT from the estimate.</div>
+      </div>
 
       <button class="more" onclick="toggleMore('moreSeller',this)">▾ More options (plusvalía, mortgage, extras)</button>
       <div class="more-body" id="moreSeller">
         <div class="row2">
           <div class="field">
-            <label>Purchase costs paid then (€)</label>
+            <label>Purchase costs paid then (€) <span class="infobtn" onclick="tip(this)">i</span></label>
+            <div class="tip">Taxes and fees the seller paid when they originally bought (ITP/IVA, notary, registry, etc.). Added to the purchase price to reduce the taxable gain.</div>
             <input type="number" id="purchaseCosts" placeholder="45000">
           </div>
           <div class="field">
-            <label>Improvements (€)</label>
+            <label>Improvements (€) <span class="infobtn" onclick="tip(this)">i</span></label>
+            <div class="tip">Cost of major improvements or renovations with invoices. These increase the acquisition value and lower the taxable capital gain. Ordinary repairs don't count.</div>
             <input type="number" id="improvements" placeholder="0">
           </div>
         </div>
         <div class="row2">
           <div class="field">
-            <label>Catastral LAND value (€)</label>
+            <label>Catastral LAND value (€) <span class="infobtn" onclick="tip(this)">i</span></label>
+            <div class="tip">The land (suelo) portion of the cadastral value, shown on the IBI receipt. Plusvalía municipal is calculated on this land value, not the building.</div>
             <input type="number" id="landValue" placeholder="80000">
           </div>
           <div class="field">
-            <label>Plusvalía rate (%)</label>
+            <label>Plusvalía rate (%) <span class="infobtn" onclick="tip(this)">i</span></label>
+            <div class="tip">The municipal tax rate applied for plusvalía. It varies by town hall (typically around 30%). Check the local rate for the property's municipality.</div>
             <input type="number" id="plusvaliaRate" value="30" step="0.5">
           </div>
         </div>
-        <label class="check"><input type="checkbox" id="soldAtLoss"><span>Sold at a loss (plusvalía exempt)</span></label>
-        <label class="check"><input type="checkbox" id="hasMortgageSell"><span>Seller has a mortgage to cancel</span></label>
+        <div class="checkwrap">
+          <div class="checkrow"><label class="check"><input type="checkbox" id="soldAtLoss"><span>Sold at a loss (plusvalía exempt)</span></label><span class="infobtn" onclick="tip(this)">i</span></div>
+          <div class="tip">If the property sold for less than it was bought, no plusvalía municipal is due. Tick to exempt it from the estimate.</div>
+        </div>
+        <div class="checkwrap">
+          <div class="checkrow"><label class="check"><input type="checkbox" id="hasMortgageSell"><span>Seller has a mortgage to cancel</span></label><span class="infobtn" onclick="tip(this)">i</span></div>
+          <div class="tip">Tick if there is an outstanding mortgage on the property that must be cancelled at the sale. Opens fields for the balance and cancellation cost.</div>
+        </div>
         <div id="mortgageSellBox" style="display:none;margin-top:12px;">
           <div class="row2">
             <div class="field">
-              <label>Outstanding balance (€)</label>
+              <label>Outstanding balance (€) <span class="infobtn" onclick="tip(this)">i</span></label>
+              <div class="tip">The amount still owed on the mortgage. Optionally deducted from the seller's net proceeds below.</div>
               <input type="number" id="outstanding" placeholder="150000">
             </div>
             <div class="field">
-              <label>Cancellation fee (%)</label>
+              <label>Cancellation fee (%) <span class="infobtn" onclick="tip(this)">i</span></label>
+              <div class="tip">The bank's early-cancellation fee as a percentage of the outstanding balance. Notary, registry and gestoría costs (~900 €) are added on top.</div>
               <input type="number" id="cancelFeePct" value="0.5" step="0.25">
             </div>
           </div>
-          <label class="check"><input type="checkbox" id="deductMortgage" checked><span>Deduct balance from net proceeds</span></label>
-        </div>
-        <div class="row2" style="margin-top:12px;">
-          <div class="field">
-            <label>Energy certificate (€)</label>
-            <input type="number" id="energyCert" value="150">
-          </div>
-          <div class="field">
-            <label>Community certificate (€)</label>
-            <input type="number" id="communityCert" value="75">
+          <div class="checkwrap">
+            <div class="checkrow"><label class="check"><input type="checkbox" id="deductMortgage" checked><span>Deduct balance from net proceeds</span></label><span class="infobtn" onclick="tip(this)">i</span></div>
+            <div class="tip">If ticked, the outstanding mortgage balance is subtracted from the seller's net proceeds to show cash in hand after repaying the loan.</div>
           </div>
         </div>
       </div>
@@ -376,6 +407,7 @@ function toggleMore(id,btn){
   const b=$(id); b.classList.toggle('open');
   btn.textContent = b.classList.contains('open') ? btn.textContent.replace('▾','▴') : btn.textContent.replace('▴','▾');
 }
+function tip(el){ const box=el.closest('.field, .checkwrap'); if(!box) return; const t=box.querySelector('.tip'); if(t) t.classList.toggle('open'); }
 
 /* segmented */
 document.querySelectorAll('.segmented').forEach(seg=>{
@@ -443,9 +475,9 @@ function calc(){
       seller.push(['Capital gains tax', hasBasis?(gain>0?`Resident · gain ${euro(gain)}`:'No taxable gain'):'Enter purchase price', Math.max(0,cgt), hasBasis?'':'muted']);
       sellerTotal+=Math.max(0,cgt);
     } else {
-      const flat=state.sellerRes==='eu'?0.19:0.24;
+      const flat=0.24;
       let cgt = (hasBasis&&gain>0)?gain*flat:0;
-      seller.push(['Capital gains tax',hasBasis?(gain>0?`Non-res ${(flat*100).toFixed(0)}% · gain ${euro(gain)}`:'No taxable gain'):`Non-res ${(flat*100).toFixed(0)}% — enter purchase`,cgt,(hasBasis&&gain>0)?'':'muted']);
+      seller.push(['Capital gains tax',hasBasis?(gain>0?`Non-resident 24% · gain ${euro(gain)}`:'No taxable gain'):'Non-resident 24% — enter purchase',cgt,(hasBasis&&gain>0)?'':'muted']);
       sellerTotal+=cgt;
       const ret=price*0.03;
       seller.push(['3% retention','Withheld by buyer · Modelo 211',ret,'muted']);
@@ -477,11 +509,6 @@ function calc(){
       seller.push(['Mortgage cancellation','Fee + notary + registry + gestoría',cc]);
       sellerTotal+=cc;
     }
-    // certs
-    const ec=num('energyCert'),cmc=num('communityCert');
-    seller.push(['Energy certificate','Required',ec]);
-    seller.push(['Community certificate','Certificado de deuda',cmc]);
-    sellerTotal+=ec+cmc;
     if(pYear>0&&(new Date().getFullYear()-pYear)<1) sFlags.push(['warn','Owned less than 1 year — short-term gain, higher tax exposure.']);
     if(pYear>0&&pYear<=1994) sFlags.push(['info','Bought before 1995 — transitional reduction may lower CGT.']);
   }
